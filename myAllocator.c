@@ -246,6 +246,7 @@ void *firstFitAllocRegion(size_t s) {
 
 BlockPrefix_t *findNext(size_t s){
 
+  //start looking at the middle
   BlockPrefix_t *p = lastLookedAt;
 
   int run = 1;
@@ -254,13 +255,14 @@ BlockPrefix_t *findNext(size_t s){
   
   while(p){
     
-    if(!p->allocated && computeUsableSpace(p) >= s)
+    if(!p->allocated && computeUsableSpace(p) >= s){
+      lastLookedAt = p;
       return p;
-    
+    }
     p = getNextPrefix(p);
     
   }
-  
+  //if not found, start again from the beggining
   if(run){
     p = arenaBegin;
     goto tryagain;
@@ -270,30 +272,6 @@ BlockPrefix_t *findNext(size_t s){
   return growArena(s);
   
 }
-
-BlockPrefix_t *findNextFit(size_t s) {	/* find first block with usable space > s */
-
-  printf("\n.Entering helping method.\n");
-  
-    BlockPrefix_t *p = lastLookedAt;
-    while (p) {
-      if (!p->allocated && computeUsableSpace(p) >= s){
-	p = getNextPrefix(p);
-	return p;
-      }
-    }
-
-    p = arenaBegin;
-    while(p != lastLookedAt){
-
-      if (!p->allocated && computeUsableSpace(p) >= s)
-	    return p;
-	p = getNextPrefix(p);
-
-    }
-    return growArena(s);
-}
-
 
 
 void *nextFitAllocRegion(size_t s){
@@ -305,7 +283,7 @@ void *nextFitAllocRegion(size_t s){
   if (arenaBegin == 0)		/* arena uninitialized? */
     initializeArena();
   p = findNext(s);	/* find a block */
-
+  
   //printf("\nreturned from helping...\n");
   
   if (p) {
@@ -352,7 +330,6 @@ void freeRegion(void *r) {
 */
 void *resizeRegion(void *r, size_t newSize) {
 
-  printf("\nEntering Resize..\n");
   newSize = align8(newSize);
   
   
@@ -372,11 +349,11 @@ void *resizeRegion(void *r, size_t newSize) {
   BlockPrefix_t *next = computeNextPrefixAddr(p);
   int availNext = computeUsableSpace(next);
 
-  printf("\nMy Code..\n");
   
+  //if the next region if free and large enough
    if(next->allocated == 0 && newSize <= oldSize + availNext){
 
-
+     //if the next region is larger than needed, split it
      if((newSize - oldSize + prefixSize + suffixSize + 8)  <= availNext){
 
        
@@ -398,9 +375,7 @@ void *resizeRegion(void *r, size_t newSize) {
 
        //take the complete block
          p->suffix = next->suffix;
-       
 	 next->suffix->prefix = p;
-
 	 return r;
 	 
      }

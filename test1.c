@@ -21,17 +21,17 @@ void getutime(struct timeval *t)
 
 int main() 
 {
-  printf("\nEnter");
+  //printf("\nEnter");
   void *p1, *p2, *p3;
   arenaCheck();
-  printf("\nBefore Malloc");
+  //printf("\nBefore Malloc");
   p1 = malloc(254);
-  printf("\nAfter Malloc");
+  //printf("\nAfter Malloc");
   arenaCheck();
   p2 = malloc(25400);
   arenaCheck();
   p3 = malloc(254);
-  printf("%8zx %8zx %8zx\n", p1, p2, p3);
+  //printf("%8zx %8zx %8zx\n", p1, p2, p3);
   arenaCheck();
   free(p2);
   arenaCheck();
