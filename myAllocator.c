@@ -244,6 +244,32 @@ void *firstFitAllocRegion(size_t s) {
 
 //____________________________This is my method MODIFY THIS!!!!!!!!!!!!!!!!!!
 
+BlockPrefix_t *findNext(size_t s){
+
+  BlockPrefix_t *p = lastLookedAt;
+
+  int run = 1;
+
+ tryagain:
+  
+  while(p){
+    
+    if(!p->allocated && computeUsableSpace(p) >= s)
+      return p;
+    
+    p = getNextPrefix(p);
+    
+  }
+  
+  if(run){
+    p = arenaBegin;
+    goto tryagain;
+    run = 0;
+  }
+
+  return growArena(s);
+  
+}
 
 BlockPrefix_t *findNextFit(size_t s) {	/* find first block with usable space > s */
 
@@ -251,9 +277,10 @@ BlockPrefix_t *findNextFit(size_t s) {	/* find first block with usable space > s
   
     BlockPrefix_t *p = lastLookedAt;
     while (p) {
-	if (!p->allocated && computeUsableSpace(p) >= s)
-	    return p;
+      if (!p->allocated && computeUsableSpace(p) >= s){
 	p = getNextPrefix(p);
+	return p;
+      }
     }
 
     p = arenaBegin;
@@ -277,7 +304,7 @@ void *nextFitAllocRegion(size_t s){
   BlockPrefix_t *p;
   if (arenaBegin == 0)		/* arena uninitialized? */
     initializeArena();
-  p = findNextFit(s);	/* find a block */
+  p = findNext(s);	/* find a block */
 
   //printf("\nreturned from helping...\n");
   
